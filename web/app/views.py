@@ -1,3 +1,5 @@
+import random
+
 from rest_framework import status, filters
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
@@ -72,6 +74,16 @@ class CargoViewSet(ModelViewSet):
 
 class CarViewSet(ModelViewSet):
     serializer_class = CarSerializer
+
+    def create(self, request, *args, **kwargs):
+        car_data = self.request.data
+        random_id = random.randrange(1, Location.objects.count(), 1)
+        car_data['current_location'] = Location.objects.get(id=random_id)
+        try:
+            car = Car.objects.create(**car_data)
+            return Response(status=status.HTTP_201_CREATED, data=CarSerializer(car).data)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'error': str(e)})
 
     def get_queryset(self):
         queryset = Car.objects.all()
